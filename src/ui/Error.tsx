@@ -1,15 +1,17 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useRouteError, ErrorResponse } from 'react-router-dom';
 
-function NotFound() {
+function Error() {
   const navigate = useNavigate();
+  const error = useRouteError() as ErrorResponse;
 
   return (
     <div>
-      <h1>Something went wrong 😢</h1>
+      <h1>Something get wrong :c</h1>
+      <p>{error.data}</p>
       <p>%MESSAGE%</p>
       <button onClick={() => navigate(-1)}>&larr; Go back</button>
     </div>
   );
 }
 
-export default NotFound;
+export default Error;

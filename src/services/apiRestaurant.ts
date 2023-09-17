@@ -1,3 +1,5 @@
+import { Order, PartialOrder } from '../types';
+
 const API_URL = 'https://react-fast-pizza-api.onrender.com/api';
 
 export async function getMenu() {
@@ -18,7 +20,7 @@ export async function getOrder(id: string) {
   return data;
 }
 
-export async function createOrder(newOrder) {
+export async function createOrder(newOrder: Order) {
   try {
     const res = await fetch(`${API_URL}/order`, {
       method: 'POST',
@@ -36,7 +38,7 @@ export async function createOrder(newOrder) {
   }
 }
 
-export async function updateOrder(id: string, updateObj) {
+export async function updateOrder(id: string, updateObj: PartialOrder) {
   try {
     const res = await fetch(`${API_URL}/order/${id}`, {
       method: 'PATCH',
