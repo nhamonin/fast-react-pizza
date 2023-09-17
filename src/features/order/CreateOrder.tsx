@@ -1,6 +1,7 @@
 // import { useState } from 'react';
-import { ActionFunctionArgs, Form, redirect } from 'react-router-dom';
+import { ActionFunctionArgs, Form, redirect, useActionData, useNavigation } from 'react-router-dom';
 import { createOrder } from '../../services/apiRestaurant';
+import { OrderErrors } from '../../types';
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str: string) =>
@@ -33,6 +34,9 @@ const fakeCart = [
 function CreateOrder() {
   // const [withPriority, setWithPriority] = useState(false);
   const cart = fakeCart;
+  const navigation = useNavigation();
+  const isSubmitting = navigation.state === 'loading';
+  const formErrors = useActionData() as OrderErrors;
 
   return (
     <div>
@@ -48,6 +52,7 @@ function CreateOrder() {
           <label>Phone number</label>
           <div>
             <input type="tel" name="phone" required />
+            {formErrors?.phone && <p>{formErrors.phone}</p>}
           </div>
         </div>
 
@@ -71,7 +76,9 @@ function CreateOrder() {
 
         <div>
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <button>Order now</button>
+          <button disabled={isSubmitting}>
+            {isSubmitting ? 'Placing order...' : 'Order now!'}
+          </button>
         </div>
       </Form>
     </div>
@@ -80,14 +87,26 @@ function CreateOrder() {
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const data = Object.fromEntries(formData);
-
+  const data = Object.fromEntries(formData) as {
+    phone: string;
+    customer: string;
+    address: string;
+    cart: string;
+    priority: 'on' | undefined;
+  };
   const cartString = typeof data.cart === 'string' ? data.cart : '';
   const order = {
     ...data,
     cart: JSON.parse(cartString),
     priority: data.priority === 'on',
   };
+
+  const errors: OrderErrors = {};
+  if (!isValidPhone(order.phone)) {
+    errors['phone'] = 'Please give a valid phone number';
+  }
+
+  if (Object.keys(errors).length > 0) return errors;
 
   const newOrder = await createOrder(order);
 

@@ -21,3 +21,6 @@ export interface OrderItem {
   totalPrice: number;
   quantity: number;
 }
+export interface OrderErrors {
+  phone?: string;
+}
