@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createOrder } from "../../services/apiRestaurant";
 import { OrderErrors } from "../../types";
 import Button from "../../ui/Button";
-import { fetchAddress, getUsername } from "../user/userSlice";
+import { fetchAddress } from "../user/userSlice";
 import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
 import EmptyCart from "../cart/EmptyCart";
 import store, { AppDispatch, RootState } from "../../store";
