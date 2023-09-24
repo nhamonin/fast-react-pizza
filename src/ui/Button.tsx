@@ -5,6 +5,7 @@ type ButtonProps = {
   children: ReactNode;
   disabled?: boolean;
   to?: string;
+  onClick?: () => void;
   type?: "primary" | "secondary" | "small";
 };
 
@@ -12,6 +13,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   disabled,
   to,
+  onClick = () => {},
   type = "primary",
 }) => {
   const baseStyles = `inline-block text-sm rounded-full bg-yellow-400 font-semibold uppercase
@@ -38,7 +40,7 @@ const Button: React.FC<ButtonProps> = ({
   }
 
   return (
-    <button className={styles[type]} disabled={disabled}>
+    <button className={styles[type]} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );

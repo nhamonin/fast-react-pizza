@@ -1,21 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 import { CartItem } from "../../types";
+import { RootState } from "../../store";
 
 type CartState = {
-  cart: CartItem[];
+  items: CartItem[];
 };
 
 const initialState: CartState = {
-  cart: [
-    {
-      pizzaId: 1,
-      name: "Pizza Margherita",
-      quantity: 2,
-      unitPrice: 5,
-      totalPrice: 10,
-    },
-  ],
+  items: [],
 };
 
 const cartSlice = createSlice({
@@ -23,27 +16,29 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      state.cart.push(action.payload);
+      state.items.push(action.payload);
     },
     deleteItem: (state, action) => {
-      state.cart = state.cart.filter((item) => item.pizzaId !== action.payload);
+      state.items = state.items.filter(
+        (item) => item.pizzaId !== action.payload,
+      );
     },
     increaseItemQuantity: (state, action) => {
-      const item = state.cart.find((item) => item.pizzaId === action.payload);
+      const item = state.items.find((item) => item.pizzaId === action.payload);
       if (item) {
         item.quantity++;
         item.totalPrice = item.quantity * item.unitPrice;
       }
     },
     decreaseItemQuantity: (state, action) => {
-      const item = state.cart.find((item) => item.pizzaId === action.payload);
+      const item = state.items.find((item) => item.pizzaId === action.payload);
       if (item) {
         item.quantity--;
         item.totalPrice = item.quantity * item.unitPrice;
       }
     },
     clearCart: (state) => {
-      state.cart = [];
+      state.items = [];
     },
   },
 });
@@ -57,3 +52,9 @@ export const {
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
+
+export const getTotalCartPrice = (state: RootState) =>
+  state.cart.items.reduce((total, item) => total + item.totalPrice, 0);
+
+export const getTotalCartQuantity = (state: RootState) =>
+  state.cart.items.reduce((total, item) => total + item.quantity, 0);
