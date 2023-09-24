@@ -9,6 +9,7 @@ import {
 import { MenuItem } from "../../types";
 import Button from "../../ui/Button";
 import DeleteItem from "../cart/DeleteItem";
+import UpdateItemQuantity from "../cart/UpdateItemQuantity";
 
 function MenuItem({ pizza }: { pizza: MenuItem }) {
   const { id, name, unitPrice, ingredients, soldOut, imageUrl } = pizza;
@@ -55,7 +56,10 @@ function MenuItem({ pizza }: { pizza: MenuItem }) {
           )}
 
           {isInCart ? (
-            <DeleteItem pizzaId={+id} />
+            <div className="flex items-center gap-3 sm:gap-8">
+              <UpdateItemQuantity pizzaId={+id} quantity={itemQuantity} />
+              <DeleteItem pizzaId={+id} />
+            </div>
           ) : (
             <Button type="small" disabled={soldOut} onClick={handleAddToCart}>
               Add to cart
