@@ -6,15 +6,15 @@ import {
   useActionData,
   useNavigation,
 } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { createOrder } from "../../services/apiRestaurant";
 import { OrderErrors } from "../../types";
 import Button from "../../ui/Button";
-import { getUsername } from "../user/userSlice";
+import { fetchAddress, getUsername } from "../user/userSlice";
 import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
 import EmptyCart from "../cart/EmptyCart";
-import store from "../../store";
+import store, { AppDispatch, RootState } from "../../store";
 import { formatCurrency } from "../../utilities/helpers";
 
 // https://uibakery.io/regex-library/phone-number
@@ -25,9 +25,17 @@ const isValidPhone = (str: string) =>
 
 function CreateOrder() {
   const [withPriority, setWithPriority] = useState(false);
-  const username = useSelector(getUsername);
+  const {
+    username,
+    position,
+    address,
+    error: errorAddress,
+    status: addressStatus,
+  } = useSelector((state: RootState) => state.user);
+  const isLoadingAddress = addressStatus === "pending";
   const cart = useSelector(getCart);
   const navigation = useNavigation();
+  const dispatch = useDispatch<AppDispatch>();
   const isSubmitting = navigation.state === "loading";
   const formErrors = useActionData() as OrderErrors;
   const totalCartPrice = useSelector(getTotalCartPrice);
@@ -64,16 +72,39 @@ function CreateOrder() {
           </div>
         </div>
 
-        <div className="mb-5 flex flex-col items-center gap-2 sm:flex-row">
+        <div className="relative mb-5 flex flex-col items-center gap-2 sm:flex-row">
           <label className="sm:basis-40">Address</label>
           <div className="grow">
             <input
               type="text"
               name="address"
+              disabled={isLoadingAddress}
+              defaultValue={address}
               className="input w-full"
               required
             />
+
+            {addressStatus === "error" && (
+              <p className="mt-2 rounded-md bg-red-100 p-2 text-center text-xs text-red-700">
+                {errorAddress}
+              </p>
+            )}
           </div>
+
+          {!position?.latitude && !position?.longitude && (
+            <span className="z-1 absolute right-[28px] top-[35px] sm:right-[3px] sm:top-[3px] md:right-1.5 md:top-[5px]">
+              <Button
+                type="small"
+                disabled={isLoadingAddress}
+                onClick={(e: React.FormEvent) => {
+                  e.preventDefault();
+                  dispatch(fetchAddress());
+                }}
+              >
+                ⌖
+              </Button>
+            </span>
+          )}
         </div>
 
         <div className="mb-12 flex items-center gap-5">
@@ -83,7 +114,7 @@ function CreateOrder() {
             id="priority"
             className="h-6 w-6 accent-yellow-500 focus:outline-none focus:ring focus:ring-yellow-300
             focus:ring-offset-2"
-            value={withPriority}
+            checked={withPriority}
             onChange={(e) => setWithPriority(e.target.checked)}
           />
           <label className="font-medium" htmlFor="priority">
@@ -93,7 +124,16 @@ function CreateOrder() {
 
         <div>
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
-          <Button disabled={isSubmitting} type="primary">
+          <input
+            type="hidden"
+            name="position"
+            value={`${
+              position?.latitude && position?.longitude
+                ? `${position?.latitude},${position?.longitude}`
+                : ""
+            }`}
+          />
+          <Button disabled={isSubmitting || isLoadingAddress} type="primary">
             {isSubmitting
               ? "Placing order..."
               : `Order now for ${formatCurrency(totalPrice)}`}
@@ -111,13 +151,13 @@ export async function action({ request }: ActionFunctionArgs) {
     customer: string;
     address: string;
     cart: string;
-    priority: "true" | "false";
+    priority: "on" | undefined;
   };
   const cartString = typeof data.cart === "string" ? data.cart : "";
   const order = {
     ...data,
     cart: JSON.parse(cartString),
-    priority: data.priority === "true",
+    priority: data.priority === "on",
   };
 
   const errors: OrderErrors = {};

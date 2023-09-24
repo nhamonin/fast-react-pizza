@@ -5,7 +5,7 @@ type ButtonProps = {
   children: ReactNode;
   disabled?: boolean;
   to?: string;
-  onClick?: () => void;
+  onClick?: ((e: React.FormEvent) => void) | (() => void);
   type?: "primary" | "secondary" | "small" | "round";
 };
 
